@@ -2,8 +2,8 @@
 PATH=~:$PATH
 
 # This script take BAM file and converts it to BED file
-# input: BAM file
-# output: output directory
+# input: BAM file and output directory
+# output: directory containing .bed file, filtered .bed file and number of rows of .bed file in .txt
 
 source $(dirname $(dirname $(which mamba)))/etc/profile.d/conda.sh
 
