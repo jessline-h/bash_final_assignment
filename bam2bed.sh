@@ -2,11 +2,14 @@
 PATH=~:$PATH
 
 # This script take BAM file and converts it to BED file
-# input: BAM file and output directory
-# output: directory containing .bed file, filtered .bed file and number of rows of .bed file in .txt
+# input: .bam file and output directory where you want to save your file to
+# output: .bed file, .bed file filtered for chromosome 1, and a .txt file containing number of rows of filtered .bed file
 
 source $(dirname $(dirname $(which mamba)))/etc/profile.d/conda.sh
 
+conda create -n bam2bed -y
+
+conda activate bam2bed
 
 #error handling: if only 1 file provided
 if [[ "$#" -lt 2 ]]; then
@@ -17,7 +20,7 @@ fi
 
 #define input files
 input_bam=$1
-outputdir=$2
+output_dir=$2
 
 
 #error handling: if no bam file is provided
@@ -31,23 +34,19 @@ fi
 filename_bam="${input_bam##*/}"
 filename="${filename_bam%.*}"
 
-#error handling if the output_dir provided name already exist
+#if clean flag is used, remove the output directory before recreating it
 #make new directory
 
-if [[ -d "$outputdir" ]]; then
-	timestamp=$(date +"%Y%m%d_%H%M%S")
-	output_dir="${outputdir}_${timestamp}"
-	mkdir -p "$output_dir"
-
-else 
-	output_dir="$outputdir"
-	mkdir -p "$output_dir"
-
+if [[ "$clean_flag" == "--clean" ]]; then
+	rm -rf "$output_dir"
 fi
+
+mkdir -p "$output_dir"
 
 
 #define output bed file path
-output_bed="$output_dir/$filename"
+output_bed="$output_dir/${filename}"
+
 
 #convert bam to bed files and save in the define directory
 bedtools bamtobed -i "$input_bam" > "$output_bed.bed"
@@ -62,7 +61,7 @@ fi
 
 
 #filtered bed for chr1
-grep -Ei '^chr1\s' "$output_bed.bed" > "$output_bed.filtered_chr1.bed"
+grep -E -i '^chr1\s' "$output_bed.bed" > "${output_bed}_chr1.bed"
 
 
 #error handling: if no chr 1
@@ -73,13 +72,13 @@ else
 	exit 1
 fi
 
-
 #count the number of lines
-wc -l "$output_bed.bed" > "$output_dir/bam2bed_number_of_rows.txt"
 
-num_rows=$(< "$output_bed.bed" wc -l)
+wc -l "${output_bed}_chr1.bed" > "$output_dir/bam2bed_number_of_rows.txt"
 
-echo "Number of rows for $filename.bed: $num_rows"
+num_rows=$(< "${output_bed}_chr1.bed" wc -l)
+
+echo "Number of rows for ${filename}_chr1.bed: $num_rows"
 
 
 #print name
