@@ -9,6 +9,8 @@ source $(dirname $(dirname $(which mamba)))/etc/profile.d/conda.sh
 
 conda create -n bam2bed -y
 
+conda install --name bam2bed bedtools -y
+
 conda activate bam2bed
 
 #error handling: if only 1 file provided
